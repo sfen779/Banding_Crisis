@@ -1,0 +1,82 @@
+---
+title: "Untitled"
+author: "sfen779"
+date: "2023-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+data <- read.csv("finaldataset_1.csv")
+aggregated_data <- aggregate(. ~ exporter+year,data =data, FUN=sum)
+
+```
+```{r}
+us_data <- aggregated_data[which(aggregated_data$exporter=="USA"),]
+```
+
+
+
+```{r}
+library(forecast)
+
+# Convert to time series object
+ts_data <- ts(us_data$tradevalue, start=c(1989), frequency=1)
+model <- auto.arima(ts_data)
+```
+
+
+```{r}
+```
+
+
+```{r}
+# 预测未来30年数据
+future_years <- seq(2007, 2036, by = 1)
+
+new_data <- data.frame(year = future_years)
+forecast_data2 <- forecast(ts_data, h = length(future_years),newdata = new_data)
+
+forecast_data <- 4/5 *forecast_data2
+# Fit ARIMA model
+
+print(forecast_data)
+```
+```{r}
+# 使用 plot 函数绘制时间序列数据和预测结果
+
+
+# Combine original data and forecasted data into a data frame
+library(ggplot2)
+
+# Assuming you have your original time series data named ts_data
+# and forecasted data named forecast_result
+combined_data <- data.frame(
+  Year = time(ts(new_data)),
+  Actual = ts_data,
+  Forecast = forecast_data$mean,
+  ForecastLower = forecast_data$lower,
+  ForecastUpper = forecast_data$upper
+)
+
+```
+
+```{r}
+library(ggplot2)
+ggplot(combined_data, aes(x = Year)) +
+  geom_line(aes(y = Actual), color = "blue") +
+  geom_line(aes(y = Forecast), color = "red") +
+  geom_ribbon(aes(ymin = ForecastLower, ymax = ForecastUpper), fill = "gray", alpha = 0.5) +
+  labs(title = "Time Series Data and Forecast", y = "Trade Value", x = "Year") +
+  theme_minimal()
+```
+
